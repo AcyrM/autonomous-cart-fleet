@@ -1,11 +1,14 @@
-# Cart System: Vision-Guided Autonomous Cart Fleet
+# Autonomous Cart Fleet: Vision-Guided Robots with a Digital Twin
 
 A PC application that runs a fleet of small autonomous carts on a factory-like floor. **One overhead camera** is the only sensor. The software finds every cart, obstacle and person in the image, plans collision-free routes, and drives each cart over Bluetooth in a closed loop. The carts are ESP32 robots running custom firmware.
 
 The project also includes a **photo-realistic digital twin**. The production software runs unchanged on rendered camera images built from real recordings, so the whole stack can be tested at scale without hardware.
 
-![Digital twin: camera view with tracking overlays (left) and the occupancy grid the planner sees (right)](docs/digital_twin.png)
-*Left: camera view with the cart's ArUco marker, detected obstacles, a person walking by, and the planned route. Right: the occupancy grid used by the planner (free / wall / obstacle / moving object / person / cart).*
+![Fleet of 3 carts in the digital twin: camera view with tracking overlays (left) and the occupancy grid the planner sees (right)](docs/fleet_3_carts.png)
+*A fleet of 3 carts in the digital twin. Left: the camera image with each cart's ArUco marker tracked, the detected obstacles outlined, and every planned route. Right: the occupancy grid the planner works on, with each cart and its route colour-coded.*
+
+![Single cart routing around static obstacles](docs/single_cart.png)
+*One cart driving a Theta\* route around three static obstacles.*
 
 ---
 
@@ -79,8 +82,8 @@ A full technical write-up of every component is in [`system_overview.txt`](syste
 ## Getting started
 
 ```bash
-git clone git@github.com:AcyrM/Carrinho-Labirinto.git
-cd Carrinho-Labirinto
+git clone git@github.com:AcyrM/autonomous-cart-fleet.git
+cd autonomous-cart-fleet
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
@@ -119,3 +122,7 @@ PC → cart:  DRIVE:<left>:<right>   (-255..255)
 cart → PC:  HB:<uptime>:<reset reason>:<stalls>:<longest stall>   (every 2 s)
             PONG
 ```
+
+## License
+
+Released under the [MIT License](LICENSE).
