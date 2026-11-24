@@ -1,7 +1,36 @@
-# Pasta com os videos
-detect_car_and_objetcts/videos
-# Pastas dos ambientes virtuais
-detect_car_and_objetcts/.venv
-detect_car_and_objetcts/.idea
-mazeSolver/.venv
-mazeSolver/.idea
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editor / local tooling
+.vscode/
+.claude/
+
+# Archives and backups
+*.rar
+*.zip
+
+# Model weights (Ultralytics downloads yolo11n.pt on first run)
+*.pt
+
+# Unrelated cache
+cache_amput_v2/
+
+# Videos: keep only the 4 real recordings the digital twin renders from
+videos/synthetic/*.mp4
+videos/synthetic/*.json
+!videos/synthetic/assets/
+videos/twin_runs/
+videos/Background 2.mp4
+videos/Just cart 2.mp4
+videos/Setup 2.mp4
+videos/Setup 3.mp4
+
+# Test outputs: keep only the summary tables
+results/**
+!results/
+!results/scenario_tests/
+!results/scenario_tests/resultados.csv
+!results/scenario_tests/todos_os_testes.csv

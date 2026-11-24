@@ -1,0 +1,101 @@
+{
+ "cart": {
+  "file": "cart.png",
+  "anchor": [
+   153.13482666015625,
+   159.2879638671875
+  ],
+  "illum": 154.6044921875,
+  "marker": [
+   [
+    155.0,
+    209.0
+   ],
+   [
+    104.0,
+    161.0
+   ],
+   [
+    150.0,
+    108.0
+   ],
+   [
+    203.53933715820312,
+    159.15179443359375
+   ]
+  ],
+  "marker_angle": 136.73568725585938
+ },
+ "obstacles": [
+  {
+   "file": "obstacle_0.png",
+   "anchor": [
+    72.0,
+    92.0
+   ],
+   "illum": 144.55023193359375,
+   "marker": null,
+   "marker_angle": 0.0
+  },
+  {
+   "file": "obstacle_1.png",
+   "anchor": [
+    101.0,
+    104.0
+   ],
+   "illum": 155.58070373535156,
+   "marker": null,
+   "marker_angle": 0.0
+  },
+  {
+   "file": "obstacle_2.png",
+   "anchor": [
+    162.0,
+    165.0
+   ],
+   "illum": 198.52969360351562,
+   "marker": null,
+   "marker_angle": 0.0
+  },
+  {
+   "file": "obstacle_3.png",
+   "anchor": [
+    59.0,
+    86.0
+   ],
+   "illum": 156.93923950195312,
+   "marker": null,
+   "marker_angle": 0.0
+  },
+  {
+   "file": "obstacle_4.png",
+   "anchor": [
+    93.0,
+    94.0
+   ],
+   "illum": 154.33120727539062,
+   "marker": null,
+   "marker_angle": 0.0
+  },
+  {
+   "file": "obstacle_5.png",
+   "anchor": [
+    60.0,
+    88.0
+   ],
+   "illum": 153.62806701660156,
+   "marker": null,
+   "marker_angle": 0.0
+  },
+  {
+   "file": "obstacle_6.png",
+   "anchor": [
+    72.0,
+    90.0
+   ],
+   "illum": 146.50143432617188,
+   "marker": null,
+   "marker_angle": 0.0
+  }
+ ]
+}

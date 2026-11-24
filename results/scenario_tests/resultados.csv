@@ -1,0 +1,5 @@
+Cenário,Número de testes,Representação da cena,Seguimento da trajetória,Navegação sem colisões,Paradas por falsos objetos em movimento (total),Testes com parada falsa,Rota concluída,Tempo médio da rota (s)
+1 – Apenas objetos estáticos,25,25,25,25,1,1,24,41.4
+2 – Objetos estáticos e móvel,25,25,25,24,0,0,22,49.0
+3 – Objetos estáticos e pessoas,25,24,25,23,2,1,24,52.3
+4 – Objetos estáticos e frota de 3 carrinhos,25,25,25,25,5,1,15,42.0

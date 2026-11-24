@@ -1,0 +1,38 @@
+{
+ "kind": "scenario",
+ "obstacles": [
+  {
+   "kind": 6,
+   "pos_norm": [
+    0.3,
+    0.09
+   ],
+   "angle": 0.0
+  },
+  {
+   "kind": 3,
+   "pos_norm": [
+    0.7,
+    0.09
+   ],
+   "angle": 0.0
+  },
+  {
+   "kind": 0,
+   "pos_norm": [
+    0.3,
+    0.91
+   ],
+   "angle": 90.0
+  },
+  {
+   "kind": 4,
+   "pos_norm": [
+    0.7,
+    0.91
+   ],
+   "angle": 0.0
+  }
+ ],
+ "walkers_per_min": 8.0
+}

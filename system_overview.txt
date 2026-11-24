@@ -1,0 +1,287 @@
+CART AUTOMATION SYSTEM - SUMMARY OF THE MAIN COMPONENTS
+=======================================================
+
+1. GENERAL OVERVIEW
+-------------------
+The system coordinates a fleet of small autonomous carts on a factory-like
+floor. A single overhead camera watches the floor; a PC application finds the
+carts (ArUco markers on top of each cart), detects obstacles and people,
+plans collision-free routes on a grid, and sends motor commands to each cart
+over Bluetooth. Each cart is an ESP32 microcontroller driving DC motors.
+
+The application can be started in three operation modes (chosen in a dialog
+at start-up, main.py):
+
+  - Simulation          : no hardware; virtual carts and randomly moving
+                          obstacles on a synthetic factory map.
+  - Production          : real camera + real carts over Bluetooth.
+  - Virtual production  : "digital twin"; the complete production software
+                          runs unchanged, but the camera and the carts are
+                          simulated on top of real recorded floor footage.
+
+Main technologies:
+  - Language ............ Python 3 (PC side), C++/Arduino (cart firmware)
+  - Graphical interface . PyQt6 (windows, dialogs, canvases, timers, signals)
+  - Computer vision ..... OpenCV (opencv-contrib-python): capture, ArUco
+                          markers, homography, background subtraction,
+                          ORB feature alignment, morphology
+  - Neural network ...... Ultralytics YOLO11-nano (yolo11n.pt), pretrained on
+                          COCO, used only for the "person" class
+  - Numerical ........... NumPy
+  - Communication ....... Bluetooth Classic, SPP profile over RFCOMM
+                          (Python stdlib sockets; Win32 Bluetooth API via
+                          ctypes on Windows, PyBluez2 on Linux)
+  - Embedded ............ ESP32 (WEMOS LOLIN32 Lite), FreeRTOS tasks,
+                          BluetoothSerial library, PWM motor control
+  - Persistence ......... JSON files (routines, calibration, templates) and a
+                          NumPy .npz file (empty-floor background model)
+
+
+2. PROJECT STRUCTURE
+--------------------
+  main.py              Entry point, mode selection, global dark theme
+  config.py            Global constants (grid size, timing, colours)
+  core/                Domain model: grid, cart, routine, routine scheduler
+  pathfinding/         Theta* path planner
+  production/          Real-world stack: camera, vision, Bluetooth, control
+  simulation/          Grid simulator and the photo-realistic digital twin
+  ui/                  PyQt6 windows, panels, canvases and dialogs
+  tools/               Offline scripts: synthetic videos, evaluation, twin runs
+  esp32-robot code/    Cart firmware (Arduino/ESP32)
+  data/                Saved routines, calibration, floor background, templates
+  videos/              Real recordings and generated test videos
+
+
+3. CORE DOMAIN MODEL (core/, config.py)
+---------------------------------------
+Grid (core/grid.py)
+  - The floor is represented as an occupancy grid of 192 x 108 cells stored
+    as a NumPy int8 matrix (0 = free, 1 = wall).
+
+Cart (core/cart.py)
+  - Data class holding a cart's state machine (IDLE, MOVING, WAITING,
+    BLOCKED), grid position, current path and waypoints, assigned ArUco
+    marker ID and per-cart calibration values:
+      * heading_offset - angle between the marker and the cart's real
+        driving direction
+      * invert_right / swap_sides - compensation for motor wiring
+      * min_pwm_drive / min_pwm_turn - lowest PWM that starts the cart
+  - Converts planner wheel speeds (1..255) into PWM values that actually move
+    that specific cart (linear rescaling to [min_pwm, 255]).
+
+Routine and RoutineManager (core/routine.py, core/routine_manager.py)
+  - A routine is a list of waypoints assigned to a cart, triggered either at
+    a time of day (HH:MM) or periodically (every N seconds), optionally
+    repeating.
+  - RoutineManager stores routines in data/routines.json (CRUD) and, once per
+    second, returns the routines that are due and whose cart is free.
+
+
+4. PATH PLANNING (pathfinding/theta_star.py)
+--------------------------------------------
+  - Algorithm: Theta*, an "any-angle" extension of A*. Like A* it expands the
+    8 neighbouring cells using the Euclidean distance heuristic, but when a
+    neighbour has direct line of sight to the current node's parent, it links
+    to that parent instead. The result is shorter, smoother paths with fewer
+    turns than A*, which suits carts that turn in place.
+  - Line of sight is checked with an integer "supercover" grid traversal
+    (Bresenham/DDA style) that tests every crossed cell and both corner cells
+    on diagonal steps, preventing corner cutting.
+  - Other carts, obstacles, people and safety margins are passed in as extra
+    blocked cells, so the same planner serves all modes.
+
+
+5. PRODUCTION STACK (production/)
+---------------------------------
+5.1 Camera input (camera_source.py)
+  - OpenCV VideoCapture (DirectShow backend on Windows), MJPG format, highest
+    supported resolution up to 1920 px; frames are emitted as Qt signals.
+
+5.2 Floor calibration (calibration.py)
+  - The operator clicks 4 or more reference points on the camera image and
+    types their grid coordinates. A homography (perspective transform,
+    cv2.findHomography) maps camera pixels <-> grid cells. The fit error per
+    point is checked to catch typing mistakes. Saved to data/calibration.json.
+
+5.3 Cart detection and tracking (cart_detector.py)
+  - Each cart carries a unique ArUco marker (dictionary DICT_4X4_50).
+  - CartDetector: ArUco detection on a downscaled frame with sub-pixel corner
+    refinement at full resolution, plus geometric checks (square, convex,
+    plausible size) to reject false markers. A local-contrast re-search
+    recovers markers washed out by lamp glare.
+  - CartTracker: one track per marker, with a fallback chain ordered by
+    reliability: full-frame marker -> marker found in a region of interest
+    around the predicted position -> cart body taken from the foreground mask
+    (blob) -> constant-velocity prediction -> "memory" (last known position).
+    Every pose carries its source so the controller knows how much to trust it.
+  - Outputs: position (pixels), heading angle, marker size.
+
+5.4 Obstacle detection and tracking (obstacle_detector.py)
+  - Background subtraction against a captured empty floor: ~20 frames are
+    combined into a per-pixel median background and a per-pixel noise
+    estimate (stored in data/floor_background.npz).
+  - Each frame is aligned to the background using ORB features and a RANSAC
+    similarity transform (compensates camera drift/vibration).
+  - Pixels are compared in the LAB colour space, weighting chroma more than
+    lightness to ignore shadows and exposure changes; hysteresis thresholding,
+    detection of "new edges" (for floor-coloured objects), hole filling,
+    morphological cleaning and temporal smoothing produce the obstacle mask.
+  - ObstacleTracker adds object permanence: an obstacle that is no longer
+    seen is remembered unless it left through the image border or a moving
+    object passed over it. Moving objects get a velocity and a predicted
+    swept area.
+
+5.5 Person detection (person_detector.py)
+  - YOLO11-nano (Ultralytics) restricted to the COCO "person" class,
+    confidence >= 0.45. Inference runs asynchronously in a background thread
+    so it never blocks the camera loop; the latest result is read each frame.
+
+5.6 Bluetooth communication (bt_controller.py)
+  - Bluetooth Classic, Serial Port Profile (RFCOMM channel 1). Device
+    discovery and pairing through the Win32 Bluetooth API (ctypes) on Windows.
+  - One writer thread and one reader thread per cart, so the UI never blocks.
+  - Text protocol (one command per line):
+        PC -> cart: DRIVE:<left>:<right>  (-255..255)
+                    RAW:<left>:<right>    (exact PWM, used in calibration)
+                    STOP
+                    PING                  (answered with PONG)
+        cart -> PC: HB:<uptime>:<reset reason>:<stalls>:<longest stall>
+                    (heartbeat every 2 s), PONG
+  - Link monitoring: round-trip time, silence detection, automatic reconnect
+    every 3 s, detection of cart resets (e.g. brown-out).
+
+5.7 Production engine (prod_engine.py) - the central controller
+  Runs once per camera frame (closed loop):
+    1. Update the obstacle mask and the cart tracker.
+    2. Submit the frame to the YOLO person detector.
+    3. Convert carts, obstacles and people to grid coordinates (homography)
+       and build an occupancy matrix with safety margins
+       (free / wall / wall margin / obstacle / moving object / person / cart).
+    4. For each cart with a task:
+         - if a person, obstacle or another cart blocks the next path cells
+           (look-ahead of 12 cells) -> stop and wait;
+         - if blocked for more than 3 s -> replan around the blockage with
+           Theta*; between carts, one can yield and move aside;
+         - if the cart is not visible -> stop until it is seen again;
+         - otherwise steer toward the next path node.
+    5. Advance to the next waypoint on arrival; routines are checked every
+       second by a QTimer.
+  Motion control:
+    - Differential drive: rotate in place until the heading error is small,
+      then drive forward with proportional steering. Carts are bidirectional
+      and drive backwards when that requires less turning (with hysteresis).
+    - "Step mode": because the video reaches the PC 100-200 ms late, the cart
+      moves in discrete steps (command -> stop -> wait until the image shows
+      it still -> measure the result). Each cart's turn rate and forward speed
+      are learned online (exponential averaging) to size the next command.
+    - Stuck detection (driving without progress) and a running heading check
+      that detects a wrong marker orientation.
+  Automatic per-cart calibration:
+    - Heading calibration: short forward drive to measure the angle between
+      the marker and the travel direction (snapped to multiples of 90 deg).
+    - Turn-direction check to detect swapped or inverted motor wiring.
+    - Minimum start PWM measured by bisection with short RAW probes, for
+      driving straight and for turning in place.
+
+
+6. SIMULATION AND DIGITAL TWIN (simulation/)
+--------------------------------------------
+6.1 Grid simulation (sim_engine.py, sim_obstacles.py, maze.py)
+  - Discrete simulation on the same 192 x 108 grid, ticking every 80 ms
+    (QTimer). maze.py builds a default factory layout (storage racks,
+    machinery, conveyors, workstations).
+  - Every entity occupies a set of integer cells; a move is rejected if any
+    destination cell is taken, so collisions are impossible by construction.
+  - Carts follow Theta* paths one cell at a time; when blocked they wait and
+    replan after a timeout. Obstacles wander randomly through the corridors.
+
+6.2 Photo-realistic rendering (photoreal.py)
+  - Builds images from the real recordings: real empty-floor frames played
+    back and forth, plus cart and obstacle sprites cut from real videos.
+    Extra carts get their marker redrawn with another ArUco ID.
+  - Models what the camera really shows: re-lighting under the lamp hotspot,
+    glossy marker washout, motion blur, camera drift and sensor noise.
+
+6.3 Digital twin (digital_twin.py, templates.py)
+  - Replaces only the hardware: VirtualCamera (same interface as the real
+    camera) and VirtualBTController (same interface as the Bluetooth module).
+  - The real ProdEngine runs unchanged: it only receives rendered images and
+    only sends DRIVE/STOP commands, so cart positions come from the image
+    exactly as in production.
+  - VirtualCart physics: differential drive with command latency, motor dead
+    band, first-order wheel response and per-wheel gain errors; simulated
+    people walk across the floor.
+  - Ground truth from the virtual world is used only for scoring tests.
+  - Fleet and scenario set-ups are saved as JSON templates
+    (data/virtual/templates/).
+
+
+7. USER INTERFACE (ui/)
+-----------------------
+  - main_window.py : main window; wires the right engine and canvas for each
+                     mode; toolbar, status bar, panels.
+  - map_canvas.py  : top-view grid for simulation (NumPy array rendered as
+                     QImage, carts, paths, wall editing).
+  - cart_panel.py  : list of carts and routines with add/edit/delete.
+  - routine_dialog.py : routine editor; waypoints are clicked on a mini map.
+                     In production it mirrors the live occupancy matrix and
+                     previews the planned route before saving.
+  - production/prod_canvas.py : live camera view with overlays (marker
+                     outlines and headings, obstacles, people, planned paths
+                     projected back through the inverse homography,
+                     calibration points, exclusion zones).
+  - production/occupancy_canvas.py : the occupancy matrix exactly as the
+                     planner sees it.
+  - production/bt_selector.py, camera_selector.py, device_status.py :
+                     Bluetooth/marker assignment, camera choice, link status
+                     per cart (connected, responding, round-trip time).
+  - twin_dialogs.py : physics and marker set-up of simulated carts.
+
+
+8. CART FIRMWARE (esp32-robot code/cart_firmware/cart_firmware.ino)
+--------------------------------------------------------------------
+  - Hardware: WEMOS LOLIN32 Lite (ESP32) with Bluetooth Classic, four DC
+    motors in two groups (left/right, differential drive) through an H-bridge
+    driver (e.g. MX1508 / DRV8833 / TB6612), powered by a battery pack.
+  - Receives the text protocol over BluetoothSerial (SPP) and sets motor PWM
+    (20 kHz PWM via the ESP32 LEDC peripheral, inaudible and smoother current).
+  - Soft start (60 ms ramp) and a "breakaway boost" when a side starts from
+    rest, to limit current spikes that could brown-out the ESP32.
+  - Safety implemented with FreeRTOS tasks:
+      * safetyTask - stops the motors if no DRIVE/STOP arrives for 500 ms
+        (independent of the main loop, so a stalled radio cannot keep the
+        cart moving);
+      * txTask - sends outgoing messages through a queue so a blocked link
+        never freezes command handling.
+  - Motors also stop on disconnect or an unknown command; a heartbeat (HB)
+    reports uptime, reset reason and loop stalls for diagnostics.
+  - testMotor.ino is an earlier manual test sketch (single-letter commands
+    F, B, L, R, S from a phone Bluetooth terminal).
+
+
+9. TESTING AND EVALUATION TOOLS (tools/)
+----------------------------------------
+  - synth_videos.py : generates synthetic test videos (scenarios such as
+                      basic, glare, multi-cart, obstacles, dynamic, stress)
+                      with exact per-frame ground truth in JSON.
+  - eval_videos.py  : runs cart tracking and obstacle detection offline on
+                      real or synthetic videos and reports detection rate per
+                      source, position/heading error, false markers, obstacle
+                      recall/precision and processing time per frame.
+  - run_twin.py     : headless closed-loop runs of the full production stack
+                      in the digital twin with random missions; reports
+                      mission success and tracking quality; can record video.
+  - make_templates.py : creates ready-made fleet and scenario templates.
+
+
+10. DATA FLOW SUMMARY (production / virtual mode)
+-------------------------------------------------
+  Camera frame
+    -> obstacle detector (background subtraction)  -> obstacle mask
+    -> cart tracker (ArUco + fallbacks)            -> cart poses
+    -> YOLO11 person detector (async thread)       -> people boxes
+    -> homography: pixels -> grid cells            -> occupancy matrix
+    -> Theta* planning / replanning                -> paths
+    -> step-based differential-drive controller    -> DRIVE/STOP commands
+    -> Bluetooth SPP                               -> ESP32 firmware -> motors
+    -> carts move -> visible in the next camera frame (closed loop)

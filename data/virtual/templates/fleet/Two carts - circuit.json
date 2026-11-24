@@ -1,0 +1,111 @@
+{
+ "kind": "fleet",
+ "carts": [
+  {
+   "name": "V1",
+   "color": "#3b82f6",
+   "marker_id": 1,
+   "pos_norm": [
+    0.14,
+    0.5
+   ],
+   "heading": 90.0,
+   "heading_offset": 90.0,
+   "params": {
+    "marker_offset": 90.0,
+    "px_per_unit": 1.1111111111111112,
+    "motor_tau": 0.12,
+    "deadband": 40,
+    "gain_l": 1.0,
+    "gain_r": 1.0
+   },
+   "routines": [
+    {
+     "name": "Circuit",
+     "schedule_type": "interval",
+     "waypoints_norm": [
+      [
+       0.14,
+       0.25
+      ],
+      [
+       0.86,
+       0.25
+      ],
+      [
+       0.86,
+       0.75
+      ],
+      [
+       0.14,
+       0.75
+      ],
+      [
+       0.14,
+       0.5
+      ]
+     ],
+     "time_of_day": null,
+     "interval_seconds": 5,
+     "repeat": true,
+     "enabled": true,
+     "last_triggered": null,
+     "id": "47d8f42a-343"
+    }
+   ]
+  },
+  {
+   "name": "V2",
+   "color": "#06b6d4",
+   "marker_id": 2,
+   "pos_norm": [
+    0.86,
+    0.5
+   ],
+   "heading": -90.0,
+   "heading_offset": 90.0,
+   "params": {
+    "marker_offset": 90.0,
+    "px_per_unit": 1.1111111111111112,
+    "motor_tau": 0.12,
+    "deadband": 40,
+    "gain_l": 1.0,
+    "gain_r": 1.0
+   },
+   "routines": [
+    {
+     "name": "Circuit",
+     "schedule_type": "interval",
+     "waypoints_norm": [
+      [
+       0.86,
+       0.75
+      ],
+      [
+       0.14,
+       0.75
+      ],
+      [
+       0.14,
+       0.25
+      ],
+      [
+       0.86,
+       0.25
+      ],
+      [
+       0.86,
+       0.5
+      ]
+     ],
+     "time_of_day": null,
+     "interval_seconds": 5,
+     "repeat": true,
+     "enabled": true,
+     "last_triggered": null,
+     "id": "0c60a83c-3bb"
+    }
+   ]
+  }
+ ]
+}

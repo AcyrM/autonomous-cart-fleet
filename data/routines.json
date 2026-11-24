@@ -1,0 +1,280 @@
+[
+  {
+    "id": "0fc8736e-946",
+    "cart_id": "aee5eafb",
+    "name": "Cross",
+    "schedule_type": "interval",
+    "waypoints": [
+      [
+        41,
+        54
+      ],
+      [
+        27,
+        27
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "time_of_day": null,
+    "interval_seconds": 5,
+    "repeat": true,
+    "enabled": true,
+    "last_triggered": "2026-11-08T19:16:49.440649"
+  },
+  {
+    "id": "425cb181-f95",
+    "cart_id": "e0a6380e",
+    "name": "1-route",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        60,
+        150
+      ],
+      [
+        57,
+        39
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "ac1bd300-435",
+    "cart_id": "0ec2ce40",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        25,
+        23
+      ],
+      [
+        78,
+        63
+      ],
+      [
+        49,
+        145
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "73ff9120-8dd",
+    "cart_id": "d960cb09",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        76,
+        54
+      ],
+      [
+        51,
+        126
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "1cf4632f-205",
+    "cart_id": "dce76645",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        36,
+        32
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "f1e02dce-0d0",
+    "cart_id": "097c6e16",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        23,
+        25
+      ],
+      [
+        92,
+        109
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "e5c55ade-05b",
+    "cart_id": "1fc0a8b6",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        28,
+        34
+      ],
+      [
+        27,
+        151
+      ],
+      [
+        78,
+        100
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "5865e6a2-aa0",
+    "cart_id": "746d10be",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        59,
+        33
+      ],
+      [
+        57,
+        153
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "2c725b1e-b6b",
+    "cart_id": "24832903",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        45,
+        151
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "02a6dda7-ea0",
+    "cart_id": "24832903",
+    "name": "2",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        54,
+        37
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "3230c5c9-ec3",
+    "cart_id": "44d0b4c0",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        46,
+        157
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "981af38e-472",
+    "cart_id": "44d0b4c0",
+    "name": "2",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        48,
+        28
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "0301168d-404",
+    "cart_id": "762ef5bb",
+    "name": "1",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        50,
+        27
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  },
+  {
+    "id": "884c27f4-74e",
+    "cart_id": "762ef5bb",
+    "name": "2",
+    "schedule_type": "time_of_day",
+    "waypoints": [
+      [
+        50,
+        146
+      ]
+    ],
+    "time_of_day": "00:00",
+    "interval_seconds": null,
+    "repeat": false,
+    "enabled": true,
+    "last_triggered": null
+  }
+]
